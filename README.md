@@ -6,17 +6,28 @@ Install only what you need. Each module is self-contained with its own agents, s
 
 ---
 
-## Quick Start (5 minutes)
+## Quick Start
+
+### Option A: Copy `.claude/` directly (Recommended)
+
+No dependencies. No build step. Just copy and use.
 
 ```bash
 git clone https://github.com/tygwan/open-claude-office.git
-cd open-claude-office
-./install.sh --target=/your/project
+cp -r open-claude-office/.claude /your/project/.claude
+cd /your/project
+claude
 ```
 
-By default, all modules are installed. To install specific modules only:
+That's it. Claude Code automatically discovers the agents, skills, commands, and hooks inside `.claude/`. Everything works through the native Claude Code CLI -- no dashboard or external tools required.
+
+### Option B: Modular install via `install.sh`
+
+Use this if you want selective module installation, settings.json merge, or clean uninstall support. Requires `jq`.
 
 ```bash
+cd open-claude-office
+
 # Full install (default)
 ./install.sh --target=/your/project
 
@@ -25,22 +36,47 @@ By default, all modules are installed. To install specific modules only:
 
 # Preview without changes
 ./install.sh --target=/your/project --dry-run
-```
 
-After installation, your project gains a `.claude/` directory with the selected agents, skills, commands, and hooks. Claude Code automatically discovers and routes to the appropriate agent based on your prompts.
+# Uninstall
+./install.sh --target=/your/project --uninstall
+```
 
 ---
 
+## How It Works
+
+Copy `.claude/` into any project and Claude Code gains 47 agents, 23 skills, 12 commands, and 9 hooks -- all working through the native CLI. No server, no dashboard, no extra runtime.
+
+```
+your-project/
+├── .claude/
+│   ├── agents/         <- 47 keyword-routed agents (via MANIFEST.md)
+│   ├── skills/         <- 23 skills (invocable via /skill-name)
+│   ├── commands/       <- 12 slash commands (/feature, /craft, /phase, ...)
+│   ├── hooks/          <- 9 automation hooks (safety, progress, analytics)
+│   └── settings.json   <- Unified config (lifecycle, quality gates, ...)
+└── your code...
+```
+
+**Everything runs inside `claude` CLI.** Ask naturally and the right agent handles it:
+
+```
+> "이 코드 리뷰해줘"           → code-reviewer agent
+> "커밋 메시지 작성해줘"        → commit-helper agent
+> /feature                     → feature development workflow
+> /craft                       → portfolio generation pipeline
+> /phase                       → phase status and transitions
+```
+
 ## Features
 
-- **Multi-Project Dashboard** -- VSCode-like UI with project sidebar, lifecycle stage toggle, and Interactive Pipeline Flow. Manage all `~/dev/` projects from one dashboard.
-- **Lifecycle Management** -- Phase-gated development from MVP to PoC to Production, with Sprint tracking, quality gates, and automated documentation. Switch lifecycle stage from the dashboard UI.
+- **Keyword-Routed Agents** -- `MANIFEST.md` matches your prompt keywords to the right agent. No manual selection needed.
+- **Lifecycle Management** -- Phase-gated development from MVP to PoC to Production, with Sprint tracking, quality gates, and automated documentation.
 - **Portfolio Generation Pipeline** -- Analyze any Git repo (code, commits, stack) and generate a custom portfolio site with unique design tokens, content structure, and deployment.
 - **Multi-CLI Orchestration** -- Claude Code leads; Codex CLI handles analysis and validation; Gemini CLI handles design and visualization. Automatic fallback if any CLI is unavailable.
-- **Interactive Pipeline Flow** -- Real-time SVG node graph showing CLI events with pulse animations. Every command becomes a visible pipeline.
-- **Keyword-Routed Agents** -- `MANIFEST.md` matches your prompt keywords to the right agent. No manual selection required.
 - **Quality Gates** -- Automated checks at commit, merge, build, deploy, and release stages.
 - **Context Optimization** -- Token budget management with incremental loading across four budget levels (2K/10K/30K/50K).
+- **Interactive Dashboard** (optional) -- Real-time pipeline visualization, project file explorer, chat with session history. See [Dashboard](#dashboard) section.
 
 ---
 
@@ -92,9 +128,9 @@ open-claude-office/
 
 ---
 
-## Dashboard
+## Dashboard (Optional)
 
-A multi-project Interactive Pipeline Dashboard with VSCode-like layout:
+A multi-project Interactive Pipeline Dashboard with VSCode-like layout. **Not required** -- all orchestration features work through the native Claude Code CLI. The dashboard adds real-time visualization on top.
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -299,18 +335,21 @@ Template selection is automatic based on `stack-detector` analysis, but can be o
 
 ## Requirements
 
-**Required:**
+**To use `.claude/` features (copy approach):**
 
-- [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) -- primary orchestrator
-- `jq` -- JSON processing for hooks and state management
+- [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) -- that's it
+
+**Additional for `install.sh`:**
+
+- `jq` -- JSON processing for settings.json merge
 - `bash` 4.0+ -- hook execution
 
-**Optional (for multi-CLI orchestration):**
+**Optional (enhanced orchestration):**
 
 - [Codex CLI](https://github.com/openai/codex) -- code analysis and validation (Phase 1, 3.5)
 - [Gemini CLI](https://github.com/google-gemini/gemini-cli) -- design and visualization (Phase 2, 3)
 - [GitHub CLI (gh)](https://cli.github.com/) -- issue/PR/release management
-- Node.js 18+ -- for SvelteKit/Astro template builds
+- Node.js 18+ -- for dashboard and SvelteKit/Astro template builds
 
 If optional CLIs are not installed, all tasks fall back to Claude Code automatically.
 

@@ -5,13 +5,15 @@ import type {
 	ChatStatus,
 	ChatToolUse,
 	StreamJsonEvent,
-	PipelineEvent
+	PipelineEvent,
+	SessionSummary
 } from '$lib/types';
 import { processEvent } from '$lib/stores/events';
 
 export const chatMessages = writable<ChatMessage[]>([]);
 export const chatStatus = writable<ChatStatus>('idle');
 export const currentSession = writable<ChatSession | null>(null);
+export const sessionList = writable<SessionSummary[]>([]);
 
 let abortController: AbortController | null = null;
 let currentAssistantId: string | null = null;
@@ -105,6 +107,7 @@ export async function sendMessage(prompt: string, projectPath: string) {
 
 		updateAssistant({ isStreaming: false });
 		chatStatus.set('idle');
+		saveSession();
 	} catch (err: unknown) {
 		if (err instanceof DOMException && err.name === 'AbortError') {
 			updateAssistant({ isStreaming: false });
@@ -335,4 +338,79 @@ export function newSession(projectPath: string, projectName: string) {
 		projectName,
 		startedAt: new Date().toISOString()
 	});
+}
+
+// ─── Session Persistence ────────────────────────────────
+
+/** Save current session to server */
+async function saveSession() {
+	const session = get(currentSession);
+	const messages = get(chatMessages);
+	if (!session?.sessionId || messages.length === 0) return;
+
+	try {
+		await fetch('/api/sessions', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				sessionId: session.sessionId,
+				projectName: session.projectName,
+				projectPath: session.projectPath,
+				startedAt: session.startedAt,
+				messages
+			})
+		});
+	} catch {
+		// silent fail — persistence is best-effort
+	}
+}
+
+/** Load session list for a project */
+export async function loadSessionList(projectName: string) {
+	try {
+		const res = await fetch(`/api/sessions?project=${encodeURIComponent(projectName)}`);
+		if (res.ok) {
+			const data: SessionSummary[] = await res.json();
+			sessionList.set(data);
+		}
+	} catch {
+		sessionList.set([]);
+	}
+}
+
+/** Resume a previous session — restore messages and prepare --resume */
+export async function resumeSession(sessionId: string, projectName: string) {
+	try {
+		const res = await fetch(`/api/sessions/${encodeURIComponent(sessionId)}?project=${encodeURIComponent(projectName)}`);
+		if (!res.ok) return;
+
+		const data = await res.json();
+		const messages: ChatMessage[] = data.messages ?? [];
+
+		cancelChat();
+		chatMessages.set(messages);
+		chatStatus.set('idle');
+		currentAssistantId = null;
+
+		currentSession.set({
+			sessionId: data.sessionId,
+			projectPath: data.projectPath,
+			projectName: data.projectName,
+			startedAt: data.startedAt
+		});
+	} catch {
+		// silent fail
+	}
+}
+
+/** Delete a session from server */
+export async function deleteSession(sessionId: string, projectName: string) {
+	try {
+		await fetch(`/api/sessions/${encodeURIComponent(sessionId)}?project=${encodeURIComponent(projectName)}`, {
+			method: 'DELETE'
+		});
+		sessionList.update((list) => list.filter((s) => s.sessionId !== sessionId));
+	} catch {
+		// silent fail
+	}
 }

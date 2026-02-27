@@ -108,9 +108,9 @@
 
 	<!-- Tab content -->
 	{#if !collapsed}
-		<div class="flex-1 overflow-hidden">
-			{#if activeTab === 'log'}
-				<!-- Inline Command Log content -->
+		<div class="flex-1 overflow-hidden relative">
+			<!-- Command Log (hidden when chat tab is active) -->
+			<div class="h-full {activeTab === 'log' ? '' : 'hidden'}">
 				<div bind:this={logContainer} class="h-full overflow-y-auto font-mono text-[12px] leading-5">
 					{#if $commandLog.length === 0}
 						<div class="flex h-full items-center justify-center text-[var(--dash-text-dim)]/50">
@@ -149,9 +149,12 @@
 						{/each}
 					{/if}
 				</div>
-			{:else}
+			</div>
+
+			<!-- Chat (hidden when log tab is active) -->
+			<div class="h-full {activeTab === 'chat' ? '' : 'hidden'}">
 				<ChatPanel />
-			{/if}
+			</div>
 		</div>
 	{/if}
 </div>

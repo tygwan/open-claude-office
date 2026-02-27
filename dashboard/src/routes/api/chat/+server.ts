@@ -25,14 +25,29 @@ export const POST: RequestHandler = async ({ request }) => {
 	const stream = new ReadableStream({
 		start(controller) {
 			const encoder = new TextEncoder();
+			let closed = false;
 
 			const sendSSE = (data: string) => {
-				controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+				if (closed) return;
+				try {
+					controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+				} catch {
+					closed = true;
+				}
+			};
+
+			const closeOnce = () => {
+				if (closed) return;
+				closed = true;
+				try {
+					controller.close();
+				} catch {
+					// already closed
+				}
 			};
 
 			claude.process.stdout?.on('data', (chunk: Buffer) => {
 				const text = chunk.toString();
-				// stdout emits NDJSON – one JSON object per line
 				const lines = text.split('\n').filter((l) => l.trim());
 				for (const line of lines) {
 					sendSSE(line);
@@ -48,12 +63,12 @@ export const POST: RequestHandler = async ({ request }) => {
 
 			claude.process.on('close', (code) => {
 				sendSSE(JSON.stringify({ type: 'system', subtype: 'close', code }));
-				controller.close();
+				closeOnce();
 			});
 
 			claude.process.on('error', (err) => {
 				sendSSE(JSON.stringify({ type: 'error', content: err.message }));
-				controller.close();
+				closeOnce();
 			});
 		},
 		cancel() {

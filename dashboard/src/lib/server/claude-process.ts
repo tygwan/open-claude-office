@@ -23,6 +23,7 @@ export function spawnClaude(opts: SpawnClaudeOptions): ClaudeProcess {
 	const args: string[] = [
 		'-p',
 		opts.prompt,
+		'--verbose',
 		'--output-format',
 		'stream-json'
 	];

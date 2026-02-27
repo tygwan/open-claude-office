@@ -7,6 +7,13 @@ export type LifecycleStage = 'mvp' | 'poc' | 'production';
 
 export type NodeStatus = 'idle' | 'queued' | 'active' | 'streaming' | 'done' | 'error';
 
+export interface FileEntry {
+	name: string;
+	path: string;
+	type: 'file' | 'directory';
+	children?: FileEntry[];
+}
+
 export interface Project {
 	name: string;
 	path: string;
@@ -113,6 +120,15 @@ export interface ChatSession {
 	projectPath: string;
 	projectName: string;
 	startedAt: string;
+}
+
+export interface SessionSummary {
+	sessionId: string;
+	projectName: string;
+	startedAt: string;
+	lastActiveAt: string;
+	messageCount: number;
+	firstMessage?: string;
 }
 
 /** Events emitted by `claude --output-format stream-json` */
