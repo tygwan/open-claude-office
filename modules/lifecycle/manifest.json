@@ -1,0 +1,50 @@
+{
+  "name": "lifecycle",
+  "version": "1.0.0",
+  "description": "MVP → PoC → Production lifecycle management with Phase/Sprint tracking",
+  "required": false,
+  "depends_on": ["core"],
+  "components": {
+    "agents": [
+      "progress-tracker",
+      "phase-tracker",
+      "dev-docs-writer",
+      "project-discovery",
+      "doc-splitter",
+      "scaffolder",
+      "api-designer",
+      "db-architect",
+      "auth-builder",
+      "container-builder",
+      "ci-generator",
+      "env-manager",
+      "security-scanner",
+      "test-strategist",
+      "lint-configurator",
+      "lifecycle-gate",
+      "migration-planner",
+      "observability-configurator",
+      "incident-manager"
+    ],
+    "skills": [
+      "sprint",
+      "agile-sync",
+      "quality-gate",
+      "feedback-loop",
+      "dev-doc-system",
+      "sync-fix"
+    ],
+    "commands": [
+      "feature",
+      "bugfix",
+      "release",
+      "phase",
+      "dev-doc-planner"
+    ],
+    "hooks": [
+      "phase-progress.sh",
+      "mvp-safety-guard.sh",
+      "lifecycle-tracker.sh"
+    ]
+  }
+}

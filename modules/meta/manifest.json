@@ -1,0 +1,27 @@
+{
+  "name": "meta",
+  "version": "1.0.0",
+  "description": "Create new agents, skills, hooks, commands, and prompts",
+  "required": false,
+  "depends_on": ["core"],
+  "components": {
+    "agents": [
+      "agent-writer",
+      "prd-writer",
+      "tech-spec-writer",
+      "dev-docs-writer"
+    ],
+    "skills": [
+      "skill-creator",
+      "subagent-creator",
+      "hook-creator",
+      "slash-command-creator",
+      "meta-prompt-generator",
+      "skill-manager",
+      "brainstorming",
+      "prompt-enhancer"
+    ],
+    "commands": [],
+    "hooks": []
+  }
+}

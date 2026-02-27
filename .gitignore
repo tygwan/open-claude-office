@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+.output/
+
+# Framework caches
+.astro/
+.svelte-kit/
+.next/
+.nuxt/
+
+# Dashboard build artifacts
+dashboard/.svelte-kit/
+dashboard/node_modules/
+dashboard/build/
+
+# Generated sites (rebuilt per project)
+workspace/*/site/
+
+# Environment
+.env
+.env.*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+*.swp
+*.swo
+
+# Logs
+.claude/logs/
+.claude/analytics/
+
+# Workspace state (per-user)
+workspace/*/.state.yaml
+
+# Temporary
+*.tmp
+*.backup

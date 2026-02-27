@@ -1,0 +1,26 @@
+{
+  "name": "git",
+  "version": "1.0.0",
+  "description": "GitHub Flow, Conventional Commits, PR management",
+  "required": false,
+  "depends_on": ["core"],
+  "components": {
+    "agents": [
+      "commit-helper",
+      "pr-creator",
+      "branch-manager",
+      "git-troubleshooter",
+      "work-unit-manager",
+      "github-manager"
+    ],
+    "skills": [
+      "gh"
+    ],
+    "commands": [
+      "git-workflow"
+    ],
+    "hooks": [
+      "auto-doc-sync.sh"
+    ]
+  }
+}

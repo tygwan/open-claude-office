@@ -1,0 +1,37 @@
+{
+  "name": "craft",
+  "version": "1.0.0",
+  "description": "Git repo analysis → portfolio site generation pipeline",
+  "required": false,
+  "depends_on": ["core"],
+  "components": {
+    "agents": [
+      "code-analyst",
+      "story-analyst",
+      "stack-detector",
+      "design-agent",
+      "page-writer",
+      "figure-designer",
+      "validation-agent",
+      "experience-interviewer"
+    ],
+    "skills": [
+      "codex",
+      "gemini"
+    ],
+    "commands": [
+      "craft",
+      "craft-analyze",
+      "craft-design",
+      "craft-preview",
+      "craft-deploy",
+      "craft-sync",
+      "craft-state",
+      "craft-export"
+    ],
+    "hooks": [
+      "state-transition.sh",
+      "craft-progress.sh"
+    ]
+  }
+}

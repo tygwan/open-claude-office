@@ -1,0 +1,26 @@
+{
+  "name": "core",
+  "version": "1.0.0",
+  "description": "Essential safety, routing, and project initialization",
+  "required": true,
+  "depends_on": [],
+  "components": {
+    "agents": [
+      "MANIFEST",
+      "file-explorer",
+      "project-analyzer",
+      "config-validator",
+      "google-searcher"
+    ],
+    "skills": [
+      "init",
+      "validate",
+      "repair",
+      "context-optimizer"
+    ],
+    "commands": [],
+    "hooks": [
+      "pre-tool-use-safety.sh"
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "name": "analytics",
+  "version": "1.0.0",
+  "description": "Tool/agent usage statistics, token tracking, cost reporting",
+  "required": false,
+  "depends_on": ["core"],
+  "components": {
+    "agents": [
+      "analytics-reporter"
+    ],
+    "skills": [
+      "analytics",
+      "ccusage",
+      "code-changelog"
+    ],
+    "commands": [],
+    "hooks": [
+      "post-tool-use-tracker.sh",
+      "notification-handler.sh"
+    ]
+  }
+}

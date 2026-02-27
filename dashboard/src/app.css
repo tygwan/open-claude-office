@@ -1,0 +1,153 @@
+@import "tailwindcss";
+
+:root {
+	--dash-bg: #0d1117;
+	--dash-sidebar: #161b22;
+	--dash-panel: #1c2128;
+	--dash-border: #30363d;
+	--dash-text: #e6edf3;
+	--dash-text-dim: #8b949e;
+	--dash-accent: #58a6ff;
+	--dash-node-claude: #3B82F6;
+	--dash-node-codex: #10B981;
+	--dash-node-gemini: #F59E0B;
+	--dash-node-team: #8B5CF6;
+	--dash-success: #3fb950;
+	--dash-warning: #d29922;
+	--dash-error: #f85149;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: var(--dash-bg);
+}
+
+::-webkit-scrollbar-thumb {
+	background: var(--dash-border);
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: var(--dash-text-dim);
+}
+
+/* Node pulse animation - idle breathing */
+@keyframes node-pulse {
+	0%, 100% {
+		filter: drop-shadow(0 0 4px currentColor);
+		opacity: 0.85;
+	}
+	50% {
+		filter: drop-shadow(0 0 12px currentColor);
+		opacity: 1;
+	}
+}
+
+/* Node pulse animation - active fast pulse */
+@keyframes node-pulse-active {
+	0%, 100% {
+		filter: drop-shadow(0 0 6px currentColor);
+		opacity: 0.9;
+	}
+	50% {
+		filter: drop-shadow(0 0 20px currentColor);
+		opacity: 1;
+	}
+}
+
+/* Streaming rapid pulse */
+@keyframes node-streaming {
+	0%, 100% {
+		filter: drop-shadow(0 0 8px currentColor) drop-shadow(0 0 16px currentColor);
+		opacity: 1;
+	}
+	50% {
+		filter: drop-shadow(0 0 2px currentColor);
+		opacity: 0.7;
+	}
+}
+
+/* Edge flow animation - dashes moving along the path */
+@keyframes edge-flow {
+	from {
+		stroke-dashoffset: 24;
+	}
+	to {
+		stroke-dashoffset: 0;
+	}
+}
+
+/* Fade in for panels */
+@keyframes fade-in {
+	from {
+		opacity: 0;
+		transform: translateY(4px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.animate-node-pulse {
+	animation: node-pulse 3s ease-in-out infinite;
+}
+
+.animate-node-active {
+	animation: node-pulse-active 1.2s ease-in-out infinite;
+}
+
+.animate-node-streaming {
+	animation: node-streaming 0.6s ease-in-out infinite;
+}
+
+.animate-edge-flow {
+	stroke-dasharray: 8 16;
+	animation: edge-flow 1s linear infinite;
+}
+
+.animate-fade-in {
+	animation: fade-in 0.2s ease-out;
+}
+
+/* Selection styling */
+::selection {
+	background: rgba(88, 166, 255, 0.3);
+}
+
+/* Utility for truncation */
+.truncate-path {
+	direction: rtl;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+}
+
+/* Chat typing cursor blink */
+@keyframes cursor-blink {
+	0%, 100% { opacity: 1; }
+	50% { opacity: 0; }
+}
+
+.chat-typing-cursor {
+	animation: cursor-blink 0.8s step-end infinite;
+	color: var(--dash-accent);
+	font-weight: bold;
+}
+
+/* Chat message fade-in (reuses existing fade-in) */
+@keyframes chat-slide-in {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}

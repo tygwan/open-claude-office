@@ -1,0 +1,24 @@
+{
+  "name": "quality",
+  "version": "1.0.0",
+  "description": "Code review, testing, refactoring, documentation quality",
+  "required": false,
+  "depends_on": ["core"],
+  "components": {
+    "agents": [
+      "code-reviewer",
+      "refactor-assistant",
+      "test-helper",
+      "doc-generator",
+      "doc-validator",
+      "readme-helper"
+    ],
+    "skills": [
+      "codex-claude-loop",
+      "readme-sync",
+      "doc-confirm"
+    ],
+    "commands": [],
+    "hooks": []
+  }
+}
