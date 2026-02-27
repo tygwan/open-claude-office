@@ -19,7 +19,8 @@
         "matcher": "Bash",
         "hooks": [
           {"type": "command", "command": ".claude/hooks/auto-doc-sync.sh Bash"},
-          {"type": "command", "command": ".claude/hooks/post-tool-use-tracker.sh Bash"}
+          {"type": "command", "command": ".claude/hooks/post-tool-use-tracker.sh Bash"},
+          {"type": "command", "command": ".claude/hooks/notion-sync.sh Bash"}
         ]
       },
       {
@@ -102,6 +103,18 @@
       "coverage_threshold": 80,
       "require_review": true,
       "require_changelog": true
+    },
+    "pre-build": {
+      "enabled": true,
+      "checks": ["content_json_schema", "tokens_css_completeness", "no_placeholders"],
+      "trigger": "building_to_validating",
+      "phase": "3_to_3.5"
+    },
+    "pre-deploy": {
+      "enabled": true,
+      "checks": ["all_validation_passed", "site_builds", "deploy_config_valid"],
+      "trigger": "build_review_to_deploying",
+      "phase": "3.5_to_4"
     },
     "pre-release": {
       "enabled": true,
@@ -375,10 +388,17 @@
       "auto_pull_on_session_start": true,
       "push_documents": false,
       "conflict_resolution": {
-        "status": "local_wins",
-        "priority": "notion_wins",
-        "content": "notion_wins",
-        "default": "latest_wins"
+        "rules": {
+          "tasks": { "status": "local_wins", "priority": "notion_wins", "assignee": "notion_wins", "due_date": "notion_wins", "default": "latest_wins" },
+          "projects": { "stage": "local_wins", "progress": "local_wins", "health": "local_wins", "priority": "notion_wins", "description": "notion_wins", "default": "latest_wins" },
+          "documents": { "default": "notion_wins" },
+          "gates": { "default": "local_wins" },
+          "sprints": { "velocity": "local_wins", "planned_pts": "notion_wins", "goal": "notion_wins", "status": "local_wins", "default": "latest_wins" },
+          "tech_debt": { "severity": "notion_wins", "status": "local_wins", "default": "latest_wins" },
+          "feedback": { "default": "notion_wins" },
+          "activity_log": { "default": "local_wins" }
+        },
+        "fallback": "latest_wins"
       }
     },
     "databases": {

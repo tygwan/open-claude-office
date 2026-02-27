@@ -48,14 +48,59 @@ Notion MCP가 설정되어 있는지 확인합니다. `mcp__notion__*` 도구가
 |----|-----------|---------|
 | Projects DB | `notion.databases.projects` | 프로젝트 현황 (Stage, Progress, Health) |
 | Tasks DB | `notion.databases.tasks` | 전 프로젝트 태스크 통합 관리 |
-| Gates DB | `notion.databases.gates` | Stage 전환 기록 (MVP/PoC/Prod Gate) |
-| Documents DB | `notion.databases.documents` | PRD, TECH-SPEC 등 문서 관리 |
+| Gates DB | `notion.databases.gates` | Quality Gate 통합: Stage Gate(MVP/PoC/Prod) + Pipeline Gate(pre-build/pre-deploy) + Dev Gate(pre-commit/pre-merge/pre-release/post-release) |
+| Documents DB | `notion.databases.documents` | PRD, TECH-SPEC, craft 산출물 등 전체 문서 관리 |
 | Sprints DB | `notion.databases.sprints` | Sprint 관리 (velocity, burndown) |
 | Tech Debt DB | `notion.databases.tech_debt` | 기술 부채 추적 |
 | Feedback DB | `notion.databases.feedback` | 학습, ADR, 회고 |
-| Activity Log DB | `notion.databases.activity_log` | 활동 이력 |
+| Activity Log DB | `notion.databases.activity_log` | 활동 이력 (Commit/PR/Deploy/StateTransition/QualityGate 등) |
 
 DB 스키마 상세: `docs/archive/NOTION-SYNC-ARCHITECTURE.md`
+
+### DB Schema Details
+
+#### Gates DB — 3 Category Gate System
+
+| Category | Gate | From → To | Source |
+|----------|------|-----------|--------|
+| Stage | MVP Gate | MVP → PoC | `lifecycle.stages` |
+| Stage | PoC Gate | PoC → Production | `lifecycle.stages` |
+| Pipeline | pre-build | building → validating | `quality-gate.pre-build` |
+| Pipeline | pre-deploy | build_review → deploying | `quality-gate.pre-deploy` |
+| Dev | pre-commit | before commit | `quality-gate.pre-commit` |
+| Dev | pre-merge | before merge | `quality-gate.pre-merge` |
+| Dev | pre-release | before release | `quality-gate.pre-release` |
+| Dev | post-release | after release | `quality-gate.post-release` |
+
+Fields: `Gate`(Title), `Category`(Select: Stage/Pipeline/Dev), `Project`(Relation), `From Stage`(Select), `To Stage`(Select), `Status`(Select: Not Checked/Passed/Failed/Blocked), `Checked At`(Date)
+
+#### Documents DB — Type 확장
+
+기존: `PRD / TECH-SPEC / DISCOVERY / RUNBOOK / ADR / SLA / SECURITY / API-SPEC`
+
+추가 (Craft Pipeline 산출물):
+`ARCHITECTURE / NARRATIVE / STACK-PROFILE / EXPERIENCE-BLOCKS / DESIGN-PROFILE / CONTENT-JSON / TOKENS-CSS / VALIDATION-REPORT / SUMMARY / CHANGELOG / SPRINT-RETRO`
+
+#### Activity Log DB — Type 확장
+
+기존: `Commit / PR / Deploy / Gate / Sprint / Incident / Release`
+
+추가: `StateTransition / QualityGate / PipelinePhase / CLIFallback`
+
+- `StateTransition`: craft state machine 전이 (init→analyzing, designing→design_review 등)
+- `QualityGate`: pre-build/pre-deploy 등 gate 검증 결과
+- `PipelinePhase`: Phase 1→2→3→4 전환 이벤트
+- `CLIFallback`: Codex/Gemini CLI 실패 → Claude fallback 이벤트
+
+#### Auto-Collection Paths
+
+| DB | Source | Trigger | Method |
+|----|--------|---------|--------|
+| Tech Debt | code-reviewer agent | PR review | tech-debt 감지 시 자동 등록 |
+| Tech Debt | security-scanner agent | security scan | severity별 자동 등록 |
+| Feedback | feedback-loop skill | fix commit, arch change | `feedback.auto_prompt_on_fix` 트리거 |
+| Feedback | sprint skill | sprint end | retro 프롬프트 → Feedback DB |
+| Feedback | state-transition.sh | pipeline done/failed | learning capture 프롬프트 |
 
 ---
 
@@ -68,16 +113,80 @@ DB 스키마 상세: `docs/archive/NOTION-SYNC-ARCHITECTURE.md`
 | Priority, Content | Notion | PM/사람이 편집한 것 존중 |
 | 프로젝트 관리 | Notion | 브라우저에서 확인 가능 |
 
-## Conflict Resolution
+## Conflict Resolution (DB별 세분화)
 
-| Field | Winner | Rationale |
-|-------|--------|-----------|
-| Status | `local_wins` | Claude Code가 코드 상태를 정확히 앎 |
-| Priority | `notion_wins` | PM의 판단 존중 |
-| Content | `notion_wins` | 사람이 편집한 것 존중 |
-| Default | `latest_wins` | 최신 timestamp |
+| DB | Field | Winner | Rationale |
+|----|-------|--------|-----------|
+| tasks | status | `local_wins` | 코드 상태를 정확히 아는 쪽 |
+| tasks | priority, assignee, due_date | `notion_wins` | PM 판단 존중 |
+| projects | stage, progress, health | `local_wins` | 코드/CI 상태 반영 |
+| projects | priority, description | `notion_wins` | 사람이 편집 |
+| documents | (all) | `notion_wins` | 사람이 편집한 것 존중 |
+| gates | (all) | `local_wins` | 기계 생성 검증 결과 |
+| sprints | velocity, status | `local_wins` | 계산/파생값 |
+| sprints | planned_pts, goal | `notion_wins` | PM 판단 |
+| tech_debt | severity | `notion_wins` | 사람이 판단 |
+| tech_debt | status | `local_wins` | 코드로 해결 여부 확인 |
+| feedback | (all) | `notion_wins` | 사람이 편집한 피드백 |
+| activity_log | (all) | `local_wins` | 기계 생성 로그 |
+| (fallback) | (all) | `latest_wins` | 최신 timestamp |
 
-설정: `.claude/settings.json` > `notion.sync.conflict_resolution`
+설정: `.claude/settings.json` > `notion.sync.conflict_resolution.rules`
+
+---
+
+## Authentication
+
+### 1순위: Notion MCP (권장)
+
+Claude Code 세션에서 MCP 서버를 통해 Notion API에 접근합니다. `mcp__notion__*` 도구가 자동으로 사용 가능합니다.
+
+### 2순위: .env + REST API (MCP 미설정 시 fallback)
+
+MCP가 설정되지 않은 환경에서는 `.env` 파일의 Integration Token으로 REST API를 직접 호출합니다.
+
+```bash
+# .env 파일 (프로젝트 루트)
+NOTION_TOKEN=ntn_xxxxxxxxxxxxxxxxxxxx
+NOTION_PROJECTS_DB=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+NOTION_TASKS_DB=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+NOTION_GATES_DB=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+NOTION_DOCUMENTS_DB=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+NOTION_SPRINTS_DB=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+NOTION_TECH_DEBT_DB=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+NOTION_FEEDBACK_DB=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+NOTION_ACTIVITY_LOG_DB=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+```
+
+설정 순서:
+1. [Notion Settings > Connections > Develop integrations](https://www.notion.so/my-integrations)에서 Internal Integration 생성
+2. 읽기/업데이트/삽입 권한 부여
+3. 접근할 페이지/DB에 통합 연결 (Share > Invite)
+4. 토큰과 DB ID를 `.env`에 저장
+5. `.gitignore`에 `.env` 추가 확인
+
+---
+
+## Guardrails (Non-negotiable)
+
+Notion 데이터를 변경하기 전 반드시 다음 프로세스를 따릅니다:
+
+1. **변경 요약 테이블 표시**: push/sync 실행 시 변경될 항목을 테이블로 미리 표시
+2. **사용자 수동 승인**: 변경 내용 확인 후 사용자가 명시적으로 승인해야 실행
+3. **dry-run 기본**: `--force` 플래그 없이는 변경 미리보기만 수행
+
+```
+/notion push
+
+┌─────────────┬──────────┬──────────┬──────────────────────┐
+│ DB          │ Action   │ Field    │ Change               │
+├─────────────┼──────────┼──────────┼──────────────────────┤
+│ Tasks       │ UPDATE   │ status   │ In Progress → Done   │
+│ Tasks       │ CREATE   │ -        │ "Fix auth bug"       │
+│ Activity Log│ CREATE   │ -        │ "feat: add login"    │
+└─────────────┴──────────┴──────────┴──────────────────────┘
+3 changes pending. Proceed? [y/N]
+```
 
 ---
 
@@ -91,7 +200,8 @@ DB 스키마 상세: `docs/archive/NOTION-SYNC-ARCHITECTURE.md`
 | `tasks-active.json` | 현재 Sprint In Progress 태스크 | 세션 시작 시 |
 | `current-sprint.json` | 현재 Sprint 정보 | 세션 시작 시 |
 | `docs/*.md` | 문서 요약 캐시 | 명시적 요청 시 |
-| `pending-sync.json` | Hook이 마킹한 pending sync | notion-sync.sh hook |
+| `pending-sync.json` | Pending sync 요약 (queue count) | notion-sync.sh hook |
+| `pending-sync.jsonl` | Sync queue (JSONL, append-only) | notion-sync.sh hook |
 
 ---
 

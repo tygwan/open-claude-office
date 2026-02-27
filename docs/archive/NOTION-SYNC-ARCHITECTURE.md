@@ -133,17 +133,21 @@ Views:
 - Filter: 내 태스크만 / 현재 Sprint만 / Blocked만
 ```
 
-### 3. Gates DB (Stage 전환 기록)
+### 3. Gates DB (Quality Gate 통합 기록)
 
 ```
 Schema:
 ┌──────────────┬────────────┬─────────────────────────────────┐
 │ Property     │ Type       │ Description                     │
 ├──────────────┼────────────┼─────────────────────────────────┤
-│ Gate         │ Title      │ MVP Gate / PoC Gate              │
+│ Gate         │ Title      │ MVP Gate / PoC Gate / pre-build │
+│              │            │ / pre-deploy / pre-commit       │
+│              │            │ / pre-merge / pre-release       │
+│              │            │ / post-release                  │
+│ Category     │ Select     │ Stage / Pipeline / Dev          │
 │ Project      │ Relation   │ → Projects DB                   │
-│ From Stage   │ Select     │ MVP / PoC                       │
-│ To Stage     │ Select     │ PoC / Production                │
+│ From Stage   │ Select     │ MVP / PoC (Stage gates only)    │
+│ To Stage     │ Select     │ PoC / Production (Stage only)   │
 │ Status       │ Select     │ Not Checked/Passed/Failed/Blocked│
 │ Checked At   │ Date       │ 검증 일시                        │
 │ Passed At    │ Date       │ 통과 일시                        │
@@ -167,7 +171,12 @@ Schema:
 │ Document     │ Title      │ 문서 이름                        │
 │ Project      │ Relation   │ → Projects DB                   │
 │ Type         │ Select     │ PRD/TECH-SPEC/DISCOVERY/RUNBOOK/│
-│              │            │ ADR/SLA/SECURITY/API-SPEC 등    │
+│              │            │ ADR/SLA/SECURITY/API-SPEC/      │
+│              │            │ ARCHITECTURE/NARRATIVE/          │
+│              │            │ STACK-PROFILE/EXPERIENCE-BLOCKS/ │
+│              │            │ DESIGN-PROFILE/CONTENT-JSON/    │
+│              │            │ TOKENS-CSS/VALIDATION-REPORT/   │
+│              │            │ SUMMARY/CHANGELOG/SPRINT-RETRO  │
 │ Status       │ Select     │ Draft / Review / Final / Archived│
 │ Stage        │ Select     │ MVP / PoC / Production          │
 │ Version      │ Text       │ v1.0, v1.1 등                   │
@@ -271,7 +280,9 @@ Schema:
 │ Activity     │ Title      │ 활동 요약                        │
 │ Project      │ Relation   │ → Projects DB                   │
 │ Type         │ Select     │ Commit/PR/Deploy/Gate/Sprint/   │
-│              │            │ Incident/Release                │
+│              │            │ Incident/Release/StateTransition│
+│              │            │ /QualityGate/PipelinePhase/     │
+│              │            │ CLIFallback                     │
 │ Detail       │ Text       │ 상세 내용                        │
 │ Link         │ URL        │ GitHub 링크 등                   │
 │ Timestamp    │ Date       │ 발생 시각                        │
