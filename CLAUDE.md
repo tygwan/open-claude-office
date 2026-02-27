@@ -7,9 +7,9 @@
 - **Portfolio Generation**: 코드/히스토리/도메인 분석 → 프로젝트별 고유 디자인 사이트 자동 생성
 - **Dev Lifecycle**: MVP→PoC→Prod 단계별 관리, Phase/Sprint, Quality Gates
 - **Multi-CLI Orchestration**: Claude Code(Lead) + Codex CLI(분석/검증) + Gemini CLI(디자인/시각화)
-- **Modular Install**: 8개 모듈 중 필요한 것만 선택 설치 (`./install.sh --modules=core,lifecycle,git`)
+- **Modular Install**: 10개 모듈 중 필요한 것만 선택 설치 (`./install.sh --modules=core,lifecycle,git`)
 - **Interactive Pipeline**: 실시간 이벤트 흐름 시각화 대시보드 (계획 중)
-- **Automation Ecosystem**: 9 hooks, 47 agents, 23 skills, 12 commands
+- **Automation Ecosystem**: 10 hooks, 47 agents, 27 skills, 13 commands
 
 ## Modules
 
@@ -23,6 +23,8 @@
 | `analytics` | Usage statistics, token tracking | No |
 | `multi-cli` | Codex/Gemini CLI orchestration | No |
 | `meta` | Create new agents, skills, hooks, commands | No |
+| `notion` | Bidirectional Notion sync (8 DBs, MCP-based) | No |
+| `external-skills` | stitch-skills, remotion, claude-office-skills | No |
 
 모듈 상세: `.claude/docs/ROLE-MAP.md`
 
@@ -199,7 +201,7 @@ CLI 스킬: `.claude/skills/codex/SKILL.md`, `.claude/skills/gemini/SKILL.md`
 
 ---
 
-## Slash Commands (13)
+## Slash Commands (14)
 
 ### Craft Pipeline Commands
 
@@ -223,10 +225,11 @@ CLI 스킬: `.claude/skills/codex/SKILL.md`, `.claude/skills/gemini/SKILL.md`
 | `/phase` | Phase 상태 확인/전환/진행률 |
 | `/dev-doc-planner` | 문서 계획 (PRD, TECH-SPEC, PROGRESS 템플릿) |
 | `/git-workflow` | Git 워크플로우 (브랜치 전략, 커밋 컨벤션, PR 템플릿) |
+| `/notion` | Notion 양방향 동기화 (sync, push, pull, status, diff, init) |
 
 ---
 
-## Skills (23)
+## Skills (27)
 
 ### Craft Skills (2)
 
@@ -235,7 +238,7 @@ CLI 스킬: `.claude/skills/codex/SKILL.md`, `.claude/skills/gemini/SKILL.md`
 | codex | Codex CLI 호출 (Phase 1 분석, Phase 3.5 검증) |
 | gemini | Gemini CLI 호출 (Phase 2 디자인, Phase 3 시각화) |
 
-### Dev Lifecycle Skills (21 directories)
+### Dev Lifecycle Skills (25 directories)
 
 | Skill | 역할 |
 |-------|------|
@@ -260,10 +263,14 @@ CLI 스킬: `.claude/skills/codex/SKILL.md`, `.claude/skills/gemini/SKILL.md`
 | subagent-creator | 새 agent 생성 |
 | hook-creator | 새 hook 생성 |
 | brainstorming | 아이디어 발상/검증 |
+| notion | Notion MCP 양방향 동기화 (8 DB, push/pull/sync) |
+| stitch-skills | Google Labs 디자인/UI 자동화 (6 sub-skills) |
+| remotion | React 기반 프로그래밍 비디오 생성 (MP4) |
+| claude-office | Office 문서 자동화 (PPTX/DOCX/XLSX/PDF) |
 
 ---
 
-## Hooks & Automation (7)
+## Hooks & Automation (8)
 
 | Hook | Event | 역할 |
 |------|-------|------|
@@ -274,6 +281,7 @@ CLI 스킬: `.claude/skills/codex/SKILL.md`, `.claude/skills/gemini/SKILL.md`
 | notification-handler.sh | Notification | 알림 처리 |
 | state-transition.sh | PostToolUse | **State Machine ↔ Quality Gate 브릿지** |
 | craft-progress.sh | PostToolUse | **Craft 파이프라인 진행률 → docs/PROGRESS.md** |
+| notion-sync.sh | PostToolUse | docs/ 변경 감지 → Notion pending sync 마킹 |
 
 브릿지 동작: `.claude/docs/INTEGRATION-MAP.md` 참조
 

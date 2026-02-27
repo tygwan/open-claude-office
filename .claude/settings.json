@@ -29,7 +29,8 @@
           {"type": "command", "command": ".claude/hooks/phase-progress.sh Write"},
           {"type": "command", "command": ".claude/hooks/post-tool-use-tracker.sh Write"},
           {"type": "command", "command": ".claude/hooks/state-transition.sh Write"},
-          {"type": "command", "command": ".claude/hooks/craft-progress.sh Write"}
+          {"type": "command", "command": ".claude/hooks/craft-progress.sh Write"},
+          {"type": "command", "command": ".claude/hooks/notion-sync.sh Write"}
         ]
       },
       {
@@ -39,7 +40,8 @@
           {"type": "command", "command": ".claude/hooks/phase-progress.sh Edit"},
           {"type": "command", "command": ".claude/hooks/post-tool-use-tracker.sh Edit"},
           {"type": "command", "command": ".claude/hooks/state-transition.sh Edit"},
-          {"type": "command", "command": ".claude/hooks/craft-progress.sh Edit"}
+          {"type": "command", "command": ".claude/hooks/craft-progress.sh Edit"},
+          {"type": "command", "command": ".claude/hooks/notion-sync.sh Edit"}
         ]
       }
     ],
@@ -205,7 +207,8 @@
         "init", "validate", "sprint", "agile-sync", "brainstorming",
         "context-optimizer", "feedback-loop", "hook-creator", "subagent-creator",
         "skill-creator", "prompt-enhancer", "dev-doc-system", "quality-gate",
-        "sync-fix", "repair", "readme-sync", "analytics", "gh"
+        "sync-fix", "repair", "readme-sync", "analytics", "gh",
+        "notion", "stitch-skills", "remotion", "claude-office"
       ],
       "commands": [
         "feature", "bugfix", "release", "phase", "git-workflow", "dev-doc-planner"
@@ -213,7 +216,8 @@
       "hooks": [
         "phase-progress.sh", "pre-tool-use-safety.sh", "post-tool-use-tracker.sh",
         "notification-handler.sh", "auto-doc-sync.sh",
-        "state-transition.sh", "craft-progress.sh"
+        "state-transition.sh", "craft-progress.sh",
+        "notion-sync.sh"
       ]
     },
     "auto_run_validation": true,
@@ -261,7 +265,7 @@
     "log_retention_days": 7,
     "graceful_degradation": true,
     "critical_hooks": ["pre-tool-use-safety.sh"],
-    "non_critical_hooks": ["auto-doc-sync.sh", "phase-progress.sh", "post-tool-use-tracker.sh", "notification-handler.sh", "state-transition.sh", "craft-progress.sh"],
+    "non_critical_hooks": ["auto-doc-sync.sh", "phase-progress.sh", "post-tool-use-tracker.sh", "notification-handler.sh", "state-transition.sh", "craft-progress.sh", "notion-sync.sh"],
     "auto_fixable": {
       "hook_permissions": true,
       "missing_directories": true,
@@ -361,6 +365,56 @@
     "portfolio_integration": {
       "portfolio_path": "/home/coffin/dev/portfolio",
       "auto_sync": false
+    }
+  },
+  "notion": {
+    "enabled": false,
+    "sync": {
+      "auto_push_on_task_change": true,
+      "auto_push_on_commit": true,
+      "auto_pull_on_session_start": true,
+      "push_documents": false,
+      "conflict_resolution": {
+        "status": "local_wins",
+        "priority": "notion_wins",
+        "content": "notion_wins",
+        "default": "latest_wins"
+      }
+    },
+    "databases": {
+      "projects": "",
+      "tasks": "",
+      "gates": "",
+      "documents": "",
+      "sprints": "",
+      "tech_debt": "",
+      "feedback": "",
+      "activity_log": ""
+    },
+    "cache": {
+      "dir": ".claude/cache/notion",
+      "ttl_minutes": 5,
+      "auto_refresh_on_session_start": true
+    }
+  },
+  "external_skills": {
+    "stitch_skills": {
+      "enabled": true,
+      "repo": "google-labs-code/stitch-skills",
+      "sub_skills": ["design-md", "react-components", "stitch-loop", "enhance-prompt", "remotion", "shadcn-ui"],
+      "auto_install": false
+    },
+    "remotion": {
+      "enabled": true,
+      "repo": "remotion-dev/skills",
+      "auto_install": false,
+      "output_dir": "out/videos"
+    },
+    "claude_office": {
+      "enabled": true,
+      "repo": "tfriedel/claude-office-skills",
+      "auto_install": false,
+      "output_dir": "out/documents"
     }
   }
 }

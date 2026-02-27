@@ -2,7 +2,7 @@
 
 > **Status: In Development** -- Core agent ecosystem is functional. Dashboard, craft pipeline, and multi-CLI orchestration are actively being built.
 
-A Claude Code agent ecosystem framework. Copy `.claude/` into any project to gain 47 agents, 23 skills, 12 commands, and 9 hooks -- all working through the native CLI.
+A Claude Code agent ecosystem framework. Copy `.claude/` into any project to gain 47 agents, 27 skills, 13 commands, and 10 hooks -- all working through the native CLI.
 
 ---
 
@@ -45,13 +45,13 @@ cd open-claude-office
 
 ## How It Works
 
-Copy `.claude/` into any project and Claude Code gains 47 agents, 23 skills, 12 commands, and 9 hooks -- all working through the native CLI. No server, no dashboard, no extra runtime.
+Copy `.claude/` into any project and Claude Code gains 47 agents, 27 skills, 13 commands, and 10 hooks -- all working through the native CLI. No server, no dashboard, no extra runtime.
 
 ```
 your-project/
 ├── .claude/
 │   ├── agents/         <- 47 keyword-routed agents (via MANIFEST.md)
-│   ├── skills/         <- 23 skills (invocable via /skill-name)
+│   ├── skills/         <- 27 skills (invocable via /skill-name)
 │   ├── commands/       <- 12 slash commands (/feature, /craft, /phase, ...)
 │   ├── hooks/          <- 9 automation hooks (safety, progress, analytics)
 │   └── settings.json   <- Unified config (lifecycle, quality gates, ...)
@@ -93,6 +93,8 @@ your-project/
 | **multi-cli** | Claude + Codex + Gemini orchestration | -- | 4 | -- | -- | No |
 | **meta** | Create new agents, skills, hooks, commands | 4 | 8 | -- | -- | No |
 | **analytics** | Usage stats, token tracking, cost reports | 1 | 3 | -- | 2 | No |
+| **notion** | Bidirectional Notion sync (8 DBs, MCP-based) | -- | 1 | 1 | 1 | No |
+| **external-skills** | stitch-skills, remotion, claude-office-skills | -- | 3 | -- | -- | No |
 
 All modules depend on **core**. Install core first, then add modules as needed.
 
@@ -196,7 +198,7 @@ Three CLI tools work in concert, with Claude Code as the lead orchestrator:
 <details>
 <summary><strong>Role Map</strong></summary>
 
-All 47 agents, 23 skills, 12 commands, and 9 hooks organized into 13 functional groups:
+All 47 agents, 27 skills, 13 commands, and 10 hooks organized into 13 functional groups:
 
 | # | Role Group | Agents | Skills | Commands | Hooks | Total |
 |---|------------|--------|--------|----------|-------|-------|
@@ -213,7 +215,7 @@ All 47 agents, 23 skills, 12 commands, and 9 hooks organized into 13 functional 
 | 11 | Analytics and Monitoring | 1 | 3 | -- | -- | 4 |
 | 12 | Meta / Tooling Creation | 4 | 6 | -- | -- | 10 |
 | 13 | Automation Hooks | -- | -- | -- | 9 | 9 |
-| | **Total** | **45** | **32** | **12** | **9** | **98** |
+| | **Total** | **45** | **36** | **13** | **10** | **104** |
 
 Full details in `.claude/docs/ROLE-MAP.md`.
 

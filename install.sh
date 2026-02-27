@@ -10,7 +10,7 @@ set -euo pipefail
 # ------------------------------------------------------------------------------
 readonly VERSION="1.0.0"
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly ALL_MODULES=(core craft lifecycle git quality analytics multi-cli meta)
+readonly ALL_MODULES=(core craft lifecycle git quality analytics multi-cli meta notion external-skills)
 readonly REQUIRED_MODULES=(core)
 readonly INSTALL_RECEIPT=".claude/.open-claude-office-receipt.json"
 

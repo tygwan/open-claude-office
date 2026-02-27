@@ -1,0 +1,13 @@
+{
+  "name": "external-skills",
+  "version": "1.0.0",
+  "description": "External skill package integrations: stitch-skills (Google Labs), remotion (video generation), claude-office-skills (Office documents)",
+  "required": false,
+  "depends_on": ["core"],
+  "components": {
+    "agents": [],
+    "skills": ["stitch-skills", "remotion", "claude-office"],
+    "commands": [],
+    "hooks": []
+  }
+}
