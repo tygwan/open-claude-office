@@ -48,31 +48,35 @@
 		}
 	});
 
-	// Sidebar resize handling
-	function startSidebarResize(e: MouseEvent) {
-		isResizingSidebar = true;
-		e.preventDefault();
-	}
-
-	function startPanelResize(e: MouseEvent) {
-		isResizingPanel = true;
-		e.preventDefault();
-	}
-
+	// Resize handling — use window-level listeners so the overlay never blocks events
 	function handleMouseMove(e: MouseEvent) {
 		if (isResizingSidebar) {
-			const newWidth = Math.max(sidebarMinWidth, Math.min(sidebarMaxWidth, e.clientX));
-			sidebarWidth = newWidth;
+			sidebarWidth = Math.max(sidebarMinWidth, Math.min(sidebarMaxWidth, e.clientX));
 		}
 		if (isResizingPanel) {
-			const newHeight = Math.max(panelMinHeight, Math.min(panelMaxHeight, window.innerHeight - e.clientY - 24)); // 24 = status bar height
-			bottomPanelHeight = newHeight;
+			bottomPanelHeight = Math.max(panelMinHeight, Math.min(panelMaxHeight, window.innerHeight - e.clientY - 24));
 		}
 	}
 
 	function handleMouseUp() {
 		isResizingSidebar = false;
 		isResizingPanel = false;
+		window.removeEventListener('mousemove', handleMouseMove);
+		window.removeEventListener('mouseup', handleMouseUp);
+	}
+
+	function startSidebarResize(e: MouseEvent) {
+		isResizingSidebar = true;
+		e.preventDefault();
+		window.addEventListener('mousemove', handleMouseMove);
+		window.addEventListener('mouseup', handleMouseUp);
+	}
+
+	function startPanelResize(e: MouseEvent) {
+		isResizingPanel = true;
+		e.preventDefault();
+		window.addEventListener('mousemove', handleMouseMove);
+		window.addEventListener('mouseup', handleMouseUp);
 	}
 
 	function toggleBottomPanel() {
@@ -80,12 +84,7 @@
 	}
 </script>
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
-<div
-	class="flex h-screen w-screen flex-col overflow-hidden"
-	onmousemove={handleMouseMove}
-	onmouseup={handleMouseUp}
->
+<div class="flex h-screen w-screen flex-col overflow-hidden">
 	<!-- Top Bar -->
 	<TopBar openProjects={$openProjects} activeProject={$activeProject} />
 
@@ -136,5 +135,5 @@
 
 <!-- Resize overlay to prevent iframe/svg capturing mouse events -->
 {#if isResizingSidebar || isResizingPanel}
-	<div class="fixed inset-0 z-50 cursor-{isResizingSidebar ? 'col' : 'row'}-resize"></div>
+	<div class="fixed inset-0 z-50" style:cursor={isResizingSidebar ? 'col-resize' : 'row-resize'}></div>
 {/if}
