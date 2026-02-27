@@ -29,9 +29,6 @@
 	onMount(() => {
 		projects.set(data.projects);
 
-		// Connect to SSE
-		connectEvents();
-
 		// Inject demo pipeline data for visual testing
 		injectDemoPipeline();
 	});
@@ -40,12 +37,10 @@
 		disconnectEvents();
 	});
 
-	// Reconnect events when active project changes
+	// Single authoritative SSE connection — reacts to project changes
 	$effect(() => {
 		const name = $activeProjectName;
-		if (name) {
-			connectEvents(name);
-		}
+		connectEvents(name ?? undefined);
 	});
 
 	// Resize handling — use window-level listeners so the overlay never blocks events

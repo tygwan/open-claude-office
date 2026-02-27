@@ -83,10 +83,10 @@ export async function sendMessage(prompt: string, projectPath: string) {
 
 			for (const line of lines) {
 				if (line.startsWith('data: ')) {
-					const data = line.slice(6).trim();
-					if (!data) continue;
+					const payload = line.slice(6).trim();
+					if (!payload) continue;
 					try {
-						const event: StreamJsonEvent = JSON.parse(data);
+						const event: StreamJsonEvent = JSON.parse(payload);
 						processStreamEvent(event);
 					} catch {
 						// skip malformed JSON
@@ -96,12 +96,16 @@ export async function sendMessage(prompt: string, projectPath: string) {
 		}
 
 		// Process any remaining buffer
-		if (buffer.trim().startsWith('data: ')) {
-			try {
-				const event: StreamJsonEvent = JSON.parse(buffer.trim().slice(6));
-				processStreamEvent(event);
-			} catch {
-				// ignore
+		const trailing = buffer.trim();
+		if (trailing.startsWith('data: ')) {
+			const payload = trailing.slice(6).trim();
+			if (payload) {
+				try {
+					const event: StreamJsonEvent = JSON.parse(payload);
+					processStreamEvent(event);
+				} catch {
+					// ignore
+				}
 			}
 		}
 
@@ -115,7 +119,7 @@ export async function sendMessage(prompt: string, projectPath: string) {
 		} else {
 			chatStatus.set('error');
 			updateAssistant({
-				content: get(chatMessages).find((m) => m.id === currentAssistantId)?.content +
+				content: (get(chatMessages).find((m) => m.id === currentAssistantId)?.content ?? '') +
 					`\n\n[Error: ${err instanceof Error ? err.message : 'Unknown error'}]`,
 				isStreaming: false
 			});
@@ -132,10 +136,16 @@ function processStreamEvent(event: StreamJsonEvent) {
 		case 'init':
 			// Capture session ID for --resume
 			if (event.session_id) {
-				currentSession.update((s) => {
-					if (s) return { ...s, sessionId: event.session_id! };
-					return s;
-				});
+				currentSession.update((s) =>
+					s
+						? { ...s, sessionId: event.session_id! }
+						: {
+								sessionId: event.session_id!,
+								projectPath: '',
+								projectName: '',
+								startedAt: new Date().toISOString()
+							}
+				);
 			}
 			break;
 
@@ -328,6 +338,7 @@ export function clearChat() {
 	currentSession.set(null);
 	chatStatus.set('idle');
 	currentAssistantId = null;
+	bridgeNodeCounter = 0;
 }
 
 export function newSession(projectPath: string, projectName: string) {

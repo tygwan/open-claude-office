@@ -218,6 +218,7 @@ export function connectEvents(projectFilter?: string) {
 		};
 	} catch {
 		isConnected.set(false);
+		reconnectTimer = setTimeout(() => connectEvents(projectFilter), 3000);
 	}
 }
 

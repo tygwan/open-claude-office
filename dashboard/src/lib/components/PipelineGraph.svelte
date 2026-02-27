@@ -66,7 +66,11 @@
 
 	function getEdgePath(sourceX: number, sourceY: number, targetX: number, targetY: number): string {
 		const midY = (sourceY + targetY) / 2;
-		return `M ${sourceX} ${sourceY + 32} C ${sourceX} ${midY}, ${targetX} ${midY}, ${targetX} ${targetY - 32}`;
+		// When nodes share the same X (within-stage), offset control points so the curve arcs outward
+		const sameColumn = Math.abs(sourceX - targetX) < 10;
+		const cp1x = sameColumn ? sourceX + 60 : sourceX;
+		const cp2x = sameColumn ? targetX + 60 : targetX;
+		return `M ${sourceX} ${sourceY + 32} C ${cp1x} ${midY}, ${cp2x} ${midY}, ${targetX} ${targetY - 32}`;
 	}
 </script>
 
