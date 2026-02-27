@@ -1,8 +1,8 @@
 # open-claude-office
 
-A Claude Code agent ecosystem framework that transforms Git repositories into portfolio sites and manages the full development lifecycle -- from MVP through Production -- with 47 specialized agents, 23 skills, 12 slash commands, and 9 automation hooks.
+> **Status: In Development** -- Core agent ecosystem is functional. Dashboard, craft pipeline, and multi-CLI orchestration are actively being built.
 
-Install only what you need. Each module is self-contained with its own agents, skills, commands, and hooks.
+A Claude Code agent ecosystem framework. Copy `.claude/` into any project to gain 47 agents, 23 skills, 12 commands, and 9 hooks -- all working through the native CLI.
 
 ---
 
@@ -76,11 +76,12 @@ your-project/
 - **Multi-CLI Orchestration** -- Claude Code leads; Codex CLI handles analysis and validation; Gemini CLI handles design and visualization. Automatic fallback if any CLI is unavailable.
 - **Quality Gates** -- Automated checks at commit, merge, build, deploy, and release stages.
 - **Context Optimization** -- Token budget management with incremental loading across four budget levels (2K/10K/30K/50K).
-- **Interactive Dashboard** (optional) -- Real-time pipeline visualization, project file explorer, chat with session history. See [Dashboard](#dashboard) section.
+- **Interactive Dashboard** (optional) -- Real-time pipeline visualization, project file explorer, chat with session history. See [Dashboard](#dashboard-optional) section.
 
 ---
 
-## Modules
+<details>
+<summary><strong>Modules</strong></summary>
 
 | Module | Description | Agents | Skills | Commands | Hooks | Required |
 |--------|-------------|--------|--------|----------|-------|----------|
@@ -95,9 +96,10 @@ your-project/
 
 All modules depend on **core**. Install core first, then add modules as needed.
 
----
+</details>
 
-## Architecture
+<details>
+<summary><strong>Architecture</strong></summary>
 
 ```
 open-claude-office/
@@ -126,9 +128,10 @@ open-claude-office/
 | `.claude/docs/ROLE-MAP.md` | Complete cross-reference of all components by role |
 | `dashboard/` | Multi-project Interactive Pipeline Dashboard |
 
----
+</details>
 
-## Dashboard (Optional)
+<details>
+<summary><strong>Dashboard (Optional)</strong></summary>
 
 A multi-project Interactive Pipeline Dashboard with VSCode-like layout. **Not required** -- all orchestration features work through the native Claude Code CLI. The dashboard adds real-time visualization on top.
 
@@ -149,18 +152,19 @@ A multi-project Interactive Pipeline Dashboard with VSCode-like layout. **Not re
 └──────────────────────────────────────────────────────────────┘
 ```
 
-- **Left sidebar**: Browse `~/dev/` project folders. Projects with `.claude/` config are marked with a star.
-- **Top bar**: Project tabs + lifecycle stage toggle (MVP / PoC / Production). Changing the stage updates the project's `.claude/settings.json`.
+- **Left sidebar**: Browse `~/dev/` project folders with nested file tree. Projects with `.claude/` config are marked.
+- **Top bar**: Project tabs + lifecycle stage toggle (MVP / PoC / Production).
 - **Main area**: Real-time Interactive Pipeline Flow with animated SVG nodes per CLI event.
-- **Bottom panel**: Collapsible command history timeline.
+- **Bottom panel**: Tabbed command history + chat with session resume.
 
 ```bash
 cd dashboard && npm run dev    # Start at localhost:4173
 ```
 
----
+</details>
 
-## Multi-CLI Orchestration
+<details>
+<summary><strong>Multi-CLI Orchestration</strong></summary>
 
 Three CLI tools work in concert, with Claude Code as the lead orchestrator:
 
@@ -187,9 +191,10 @@ Three CLI tools work in concert, with Claude Code as the lead orchestrator:
 
 **Fallback behavior**: If an external CLI fails, the system retries once, then falls back to Claude's built-in capabilities. All fallback events are logged in `.state.yaml`.
 
----
+</details>
 
-## Role Map
+<details>
+<summary><strong>Role Map</strong></summary>
 
 All 47 agents, 23 skills, 12 commands, and 9 hooks organized into 13 functional groups:
 
@@ -212,9 +217,10 @@ All 47 agents, 23 skills, 12 commands, and 9 hooks organized into 13 functional 
 
 Full details in `.claude/docs/ROLE-MAP.md`.
 
----
+</details>
 
-## Pipeline
+<details>
+<summary><strong>Craft Pipeline</strong></summary>
 
 The craft pipeline transforms a Git repository into a deployed portfolio site in four phases:
 
@@ -251,9 +257,10 @@ init -> analyzing -> analyzed -> designing -> design_review -> building -> valid
 
 Special states: `paused`, `failed`, `cancelled` (reachable from any active state).
 
----
+</details>
 
-## Lifecycle Management
+<details>
+<summary><strong>Lifecycle Management</strong></summary>
 
 Projects advance through three lifecycle stages with quality gates at each transition:
 
@@ -292,9 +299,10 @@ Projects advance through three lifecycle stages with quality gates at each trans
 | pre-release | Before release | 80% coverage, security scan, full documentation |
 | post-release | After release | Sprint archive, release notes, retrospective prompt |
 
----
+</details>
 
-## Slash Commands
+<details>
+<summary><strong>Slash Commands</strong></summary>
 
 ### Craft Pipeline
 
@@ -318,9 +326,10 @@ Projects advance through three lifecycle stages with quality gates at each trans
 | `/release` | Release management (versioning + docs + deploy) |
 | `/phase` | Phase status, transitions, and progress |
 
----
+</details>
 
-## Template Stacks
+<details>
+<summary><strong>Template Stacks</strong></summary>
 
 Portfolio sites are built using framework-specific templates selected based on project characteristics:
 
@@ -330,6 +339,8 @@ Portfolio sites are built using framework-specific templates selected based on p
 | astro-landing | Astro | Static product landings, research showcases, zero-JS default |
 
 Template selection is automatic based on `stack-detector` analysis, but can be overridden in `design-profile.yaml`.
+
+</details>
 
 ---
 
