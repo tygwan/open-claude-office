@@ -278,42 +278,33 @@ function updateToolUse(toolUseId: string, patch: Partial<ChatToolUse>) {
 	);
 }
 
-// ─── Pipeline Bridge ────────────────────────────────────
+// ─── Pipeline Bridge (stage-aware) ──────────────────────
+
+import { classifyFile, detectStage, buildNodeLabel } from '$lib/utils/classifier';
+
+let bridgeNodeCounter = 0;
 
 function bridgeToPipeline(toolName: string, input?: Record<string, unknown>) {
 	const target = extractToolTarget(toolName, input);
-	let eventType: PipelineEvent['event_type'];
-	let label: string;
+	const stage = detectStage(toolName, target);
+	const classification = target ? classifyFile(target) : { domain: 'general' as const, tech: '' };
+	const label = buildNodeLabel(toolName, target, classification.tech);
 
-	switch (toolName) {
-		case 'Write':
-		case 'Edit':
-			eventType = 'file_change';
-			label = target ? `Edit: ${target.split('/').pop()}` : 'File Edit';
-			break;
-		case 'Bash':
-			eventType = 'agent_spawn';
-			label = target ? `$ ${target.slice(0, 40)}` : 'Shell';
-			break;
-		case 'Read':
-		case 'Glob':
-		case 'Grep':
-			eventType = 'agent_output';
-			label = target ? `Read: ${target.split('/').pop()}` : toolName;
-			break;
-		default:
-			// Skip tools we don't bridge
-			return;
-	}
-
+	// All tool uses become agent_spawn so they create visible nodes
 	const pipelineEvent: PipelineEvent = {
 		timestamp: new Date().toISOString(),
 		pipeline_id: `chat-${get(currentSession)?.sessionId ?? 'live'}`,
-		event_type: eventType,
-		agent: `claude-${toolName.toLowerCase()}`,
+		event_type: 'agent_spawn',
+		stage: stage,
+		agent: `${stage}-${classification.domain}-${bridgeNodeCounter++}`,
 		cli: 'claude',
 		file: target,
-		message: label
+		message: label,
+		metadata: {
+			domain: classification.domain,
+			tech: classification.tech,
+			devStage: stage
+		}
 	};
 
 	processEvent(pipelineEvent);

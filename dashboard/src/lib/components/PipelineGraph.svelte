@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Pipeline } from '$lib/types';
 	import PipelineNodeComponent from './PipelineNode.svelte';
+	import { STAGE_ORDER, STAGE_X, STAGE_LABELS } from '$lib/utils/classifier';
 
 	interface Props {
 		pipeline: Pipeline | null;
@@ -8,8 +9,13 @@
 
 	let { pipeline }: Props = $props();
 
+	// Check if pipeline has stage-based nodes
+	const hasStages = $derived(
+		pipeline ? pipeline.nodes.some((n) => n.devStage) : false
+	);
+
 	let svgElement: SVGSVGElement | undefined = $state();
-	let viewBox = $state({ x: -20, y: -20, w: 800, h: 680 });
+	let viewBox = $state({ x: -40, y: -20, w: 1200, h: 680 });
 	let isPanning = $state(false);
 	let panStart = $state({ x: 0, y: 0 });
 	let zoom = $state(1);
@@ -46,7 +52,7 @@
 	}
 
 	function resetView() {
-		viewBox = { x: -20, y: -20, w: 800, h: 680 };
+		viewBox = { x: -40, y: -20, w: 1200, h: 680 };
 		zoom = 1;
 	}
 
@@ -90,6 +96,69 @@
 					<polygon points="0 0, 8 3, 0 6" fill="var(--dash-accent)" />
 				</marker>
 			</defs>
+
+			<!-- Stage lane backgrounds -->
+			{#if hasStages}
+				{#each STAGE_ORDER as stage, i}
+					{@const sx = STAGE_X[stage]}
+					{@const stageNodes = pipeline?.nodes.filter((n) => n.devStage === stage) ?? []}
+					{@const laneH = Math.max(200, stageNodes.length * 120 + 80)}
+					<!-- Lane background -->
+					<rect
+						x={sx - 80}
+						y={-10}
+						width={160}
+						height={laneH}
+						rx="8"
+						fill="var(--dash-text)"
+						opacity="0.02"
+					/>
+					<!-- Lane header -->
+					<text
+						x={sx}
+						y={-20}
+						text-anchor="middle"
+						fill="var(--dash-text-dim)"
+						font-size="11"
+						font-weight="600"
+						opacity="0.5"
+					>
+						{STAGE_LABELS[stage]}
+					</text>
+					<!-- Node count badge -->
+					{#if stageNodes.length > 0}
+						<text
+							x={sx}
+							y={laneH + 8}
+							text-anchor="middle"
+							fill="var(--dash-text-dim)"
+							font-size="9"
+							opacity="0.35"
+						>
+							{stageNodes.length} item{stageNodes.length !== 1 ? 's' : ''}
+						</text>
+					{/if}
+					<!-- Arrow between stages -->
+					{#if i < STAGE_ORDER.length - 1}
+						{@const nextX = STAGE_X[STAGE_ORDER[i + 1]]}
+						<line
+							x1={sx + 80}
+							y1={30}
+							x2={nextX - 80}
+							y2={30}
+							stroke="var(--dash-border)"
+							stroke-width="1"
+							stroke-dasharray="6 4"
+							opacity="0.3"
+						/>
+						<polygon
+							points="{nextX - 82},{30} {nextX - 90},{26} {nextX - 90},{34}"
+							fill="var(--dash-border)"
+							opacity="0.3"
+						/>
+					{/if}
+				{/each}
+			{/if}
 
 			<!-- Edges -->
 			{#each pipeline.edges as edge (edge.id)}

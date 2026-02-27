@@ -1,5 +1,6 @@
 import { writable, derived } from 'svelte/store';
-import type { PipelineEvent, Pipeline, PipelineNode, PipelineEdge, CommandLogEntry } from '$lib/types';
+import type { PipelineEvent, Pipeline, PipelineNode, PipelineEdge, CommandLogEntry, DevStage, FileDomain } from '$lib/types';
+import { STAGE_X } from '$lib/utils/classifier';
 
 export const events = writable<PipelineEvent[]>([]);
 export const pipelines = writable<Map<string, Pipeline>>(new Map());
@@ -67,20 +68,42 @@ export function processEvent(event: PipelineEvent) {
 				const nodeId = `${event.agent ?? 'unknown'}-${pipeline.nodes.length}`;
 				const existingNode = pipeline.nodes.find((n) => n.agent === event.agent);
 				if (!existingNode) {
-					const col = pipeline.nodes.length % 3;
-					const row = Math.floor(pipeline.nodes.length / 3);
+					// Stage-based positioning when metadata.devStage is present
+					const devStage = event.metadata?.devStage as DevStage | undefined;
+					const domain = event.metadata?.domain as FileDomain | undefined;
+					const tech = event.metadata?.tech as string | undefined;
+					let x: number, y: number;
+
+					if (devStage && STAGE_X[devStage]) {
+						const stageNodes = pipeline.nodes.filter(
+							(n) => n.devStage === devStage
+						);
+						x = STAGE_X[devStage];
+						y = 80 + stageNodes.length * 120;
+					} else {
+						// Fallback: grid layout for non-chat events
+						const col = pipeline.nodes.length % 3;
+						const row = Math.floor(pipeline.nodes.length / 3);
+						x = 180 + col * 220;
+						y = 80 + row * 160;
+					}
+
 					const newNode: PipelineNode = {
 						id: nodeId,
-						label: event.agent ?? 'Agent',
+						label: event.message ?? event.agent ?? 'Agent',
 						cli: event.cli ?? 'claude',
 						status: 'active',
-						x: 180 + col * 220,
-						y: 80 + row * 160,
+						x,
+						y,
 						file: event.file,
-						agent: event.agent
+						agent: event.agent,
+						devStage,
+						domain,
+						tech
 					};
 					pipeline.nodes = [...pipeline.nodes, newNode];
 
+					// Connect edge: same-stage nodes stack, cross-stage nodes link
 					if (pipeline.nodes.length > 1) {
 						const prevNode = pipeline.nodes[pipeline.nodes.length - 2];
 						const newEdge: PipelineEdge = {
@@ -210,24 +233,33 @@ export function disconnectEvents() {
 	isConnected.set(false);
 }
 
-/** Inject demo pipeline data for visual testing */
+/** Inject demo pipeline data for visual testing (stage-based layout) */
 export function injectDemoPipeline() {
 	const demoNodes: PipelineNode[] = [
-		{ id: 'n-planner', label: 'Planner', cli: 'claude', status: 'done', x: 120, y: 80, agent: 'planner' },
-		{ id: 'n-architect', label: 'Architect', cli: 'claude', status: 'done', x: 340, y: 80, agent: 'architect' },
-		{ id: 'n-frontend', label: 'Frontend', cli: 'codex', status: 'streaming', x: 180, y: 240, file: 'src/app.tsx', agent: 'frontend' },
-		{ id: 'n-backend', label: 'Backend', cli: 'claude', status: 'active', x: 500, y: 240, file: 'src/server.ts', agent: 'backend' },
-		{ id: 'n-reviewer', label: 'Reviewer', cli: 'gemini', status: 'queued', x: 340, y: 400, agent: 'reviewer' },
-		{ id: 'n-deployer', label: 'Deployer', cli: 'team', status: 'idle', x: 340, y: 540, agent: 'deployer' }
+		// Analyze stage (x=120)
+		{ id: 'n-read-pkg', label: 'Read package.json', cli: 'claude', status: 'done', x: 120, y: 80, agent: 'analyze-general-0', file: 'package.json', devStage: 'analyze', domain: 'general', tech: 'Config' },
+		{ id: 'n-grep-todo', label: 'Grep TODO', cli: 'claude', status: 'done', x: 120, y: 200, agent: 'analyze-general-1', devStage: 'analyze', domain: 'general', tech: 'Search' },
+		// Design stage (x=340)
+		{ id: 'n-arch', label: 'Write SPEC.md', cli: 'claude', status: 'done', x: 340, y: 80, agent: 'design-docs-0', file: 'docs/SPEC.md', devStage: 'design', domain: 'docs', tech: 'Markdown' },
+		// Implement stage (x=560)
+		{ id: 'n-frontend', label: 'Edit App.svelte', cli: 'claude', status: 'streaming', x: 560, y: 80, file: 'src/App.svelte', agent: 'impl-frontend-0', devStage: 'implement', domain: 'frontend', tech: 'Svelte' },
+		{ id: 'n-backend', label: 'Create server.ts', cli: 'claude', status: 'active', x: 560, y: 200, file: 'src/server.ts', agent: 'impl-backend-0', devStage: 'implement', domain: 'backend', tech: 'Node.js' },
+		{ id: 'n-api', label: 'Edit +server.ts', cli: 'claude', status: 'active', x: 560, y: 320, file: 'src/routes/api/+server.ts', agent: 'impl-backend-1', devStage: 'implement', domain: 'backend', tech: 'SvelteKit' },
+		// Test stage (x=780)
+		{ id: 'n-test', label: '$ npm test', cli: 'claude', status: 'queued', x: 780, y: 80, agent: 'test-test-0', devStage: 'test', domain: 'test', tech: 'Vitest' },
+		// Deploy stage (x=1000)
+		{ id: 'n-deploy', label: '$ npm run build', cli: 'claude', status: 'idle', x: 1000, y: 80, agent: 'deploy-infra-0', devStage: 'deploy', domain: 'infra', tech: 'Build' },
 	];
 
 	const demoEdges: PipelineEdge[] = [
-		{ id: 'e-1', source: 'n-planner', target: 'n-architect', active: false },
-		{ id: 'e-2', source: 'n-architect', target: 'n-frontend', active: true },
-		{ id: 'e-3', source: 'n-architect', target: 'n-backend', active: true },
-		{ id: 'e-4', source: 'n-frontend', target: 'n-reviewer', active: false },
-		{ id: 'e-5', source: 'n-backend', target: 'n-reviewer', active: false },
-		{ id: 'e-6', source: 'n-reviewer', target: 'n-deployer', active: false }
+		{ id: 'e-1', source: 'n-read-pkg', target: 'n-grep-todo', active: false },
+		{ id: 'e-2', source: 'n-grep-todo', target: 'n-arch', active: false },
+		{ id: 'e-3', source: 'n-arch', target: 'n-frontend', active: true },
+		{ id: 'e-4', source: 'n-arch', target: 'n-backend', active: true },
+		{ id: 'e-5', source: 'n-backend', target: 'n-api', active: true },
+		{ id: 'e-6', source: 'n-frontend', target: 'n-test', active: false },
+		{ id: 'e-7', source: 'n-api', target: 'n-test', active: false },
+		{ id: 'e-8', source: 'n-test', target: 'n-deploy', active: false }
 	];
 
 	const demoPipeline: Pipeline = {

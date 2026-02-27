@@ -1,5 +1,8 @@
 export type CliType = 'claude' | 'codex' | 'gemini' | 'team';
 
+export type DevStage = 'analyze' | 'design' | 'implement' | 'test' | 'deploy';
+export type FileDomain = 'frontend' | 'backend' | 'infra' | 'test' | 'docs' | 'general';
+
 export type LifecycleStage = 'mvp' | 'poc' | 'production';
 
 export type NodeStatus = 'idle' | 'queued' | 'active' | 'streaming' | 'done' | 'error';
@@ -41,6 +44,12 @@ export interface PipelineNode {
 	file?: string;
 	agent?: string;
 	tokens?: number;
+	/** Development lifecycle stage */
+	devStage?: DevStage;
+	/** File domain (frontend, backend, etc.) */
+	domain?: FileDomain;
+	/** Detected tech stack label */
+	tech?: string;
 }
 
 export interface PipelineEdge {
